@@ -71,10 +71,10 @@ The dataset consists of frontal-view chest X-ray images categorized into two cla
 The images are divided into training, validation, and test sets and are widely used for academic research in medical image classification.
 
 ### Dataset Usage
-- The dataset is **not included** in this repository due to size constraints.
-- Users must download the dataset manually from Kaggle.
+- The full dataset is **not included** in this repository due to size and license constraints.  
+- Users must download the dataset manually from Kaggle.  
 - The dataset is used strictly for **academic and research purposes**.
-
+  
 ### How to Download the Dataset
 
 1. Create or log in to your Kaggle account.
@@ -133,9 +133,9 @@ dataset/
 - Manages image uploads and preprocessing  
 
 ### Model Layer
-- Contains five trained deep learning models  
-- Models are dynamically loaded based on user selection  
-- Optimized for CPU-based inference  
+- Contains multiple trained CNN models stored in .h5 format  
+- Models are lazily loaded via a centralized loader for efficiency  
+- Optimized for CPU-based inference to run on standard machines
 
 ---
 
@@ -146,8 +146,8 @@ dataset/
 | **Custom CNN** | Lightweight CNN built from scratch for fast inference |
 | **VGG16** | Pretrained deep CNN with strong hierarchical feature extraction |
 | **VGG19** | Deeper VGG architecture capable of learning complex features |
-| **ResNet50** | Residual network with skip connections for deep learning |
-| **MobileNetV2** | Optimized lightweight model suitable for real-time inference |
+| **ResNet50** | Residual network with skip connections for deeper representations |
+| **MobileNetV2** | Efficient, lightweight model suitable for real‑time inference |
 
 Each model is trained independently and stored in `.h5` format.
 
@@ -160,6 +160,7 @@ Each model is trained independently and stored in `.h5` format.
 - **Training Strategy:**  
   - Transfer learning for pretrained models  
   - Fine-tuning of top layers  
+- **Regularization:** Data augmentation and early stopping (if configured)
 - **Validation:** Continuous monitoring using validation datasets  
 
 ---
@@ -180,13 +181,13 @@ These metrics provide balanced evaluation, especially important where false nega
 ## 9️⃣ User Interface Overview
 
 ### Upload Page
-- Chest X-ray image upload with preview  
-- Model selection dropdown with description tooltip  
-- Analyze button with loader animation  
-- Dark / Light mode toggle  
+- Chest X‑ray image upload with drag‑and‑drop support and preview  
+- Model selection dropdown listing all available CNN architectures
+- Progress indicator and loader animation during inference 
+- Keyboard shortcut hints for power‑users (optional)  
 
 ### Result Page
-- Uploaded X-ray preview  
+- Display of the uploaded X‑ray image  
 - Prediction result (Normal / Pneumonia)  
 - Selected model name  
 - Confidence score visualization  
@@ -196,23 +197,68 @@ These metrics provide balanced evaluation, especially important where false nega
 
 ## 🔧 Technology Stack
 
-- **Language:** Python 3.10  
+- **Programming Language:** Python 3.10  
 - **Deep Learning:** TensorFlow, Keras  
 - **Web Framework:** Flask  
 - **Frontend:** HTML5, CSS3, JavaScript  
 - **Model Format:** `.h5`  
-- **Deployment:** Local (CPU-based)  
+- **Runtime:** Local (CPU-based)  
+
+---
+
+## 🧱 Project Structure
+
+```text
+MedVision-Pneumo/
+├─ app.py                         # Flask application entry point
+├─ requirements.txt               # Python dependencies
+├─ README.md
+│
+├─ dataset/                       # Local dataset (not committed in full)
+│  ├─ chest_xray/                 # Original Kaggle chest X‑ray dataset
+│  │  ├─ train/
+│  │  ├─ val/
+│  │  └─ test/
+│  └─ sample_chest_xray_data/     # Small sample subset (NORMAL / PNEUMONIA)
+│
+├─ models/                        # Trained deep learning models (.h5)
+│  └─ Model1_CNN.h5
+│
+├─ notebooks/                     # Jupyter / Anaconda experiments
+│  └─ MedVision_Pneumo_MultiModel_Training_Evaluation.ipynb
+│
+├─ static/                        # Frontend assets served by Flask
+│  ├─ css/
+│  │  └─ styles.css               # Custom UI styling
+│  ├─ gradcam/                    # Grad‑CAM result images (optional)
+│  ├─ img/
+│  │  ├─ gradcam_placeholder.png
+│  │  └─ hero-xray.png
+│  └─ uploads/                    # User‑uploaded X‑ray images (runtime)
+│
+├─ templates/                     # HTML templates (Jinja2)
+│  ├─ index.html                  # Home + upload interface
+│  ├─ result.html                 # Prediction and Grad‑CAM view
+│  ├─ error.html
+│  └─ 404.html
+│
+├─ utils/                         # Helper modules
+│  ├─ gradcam.py                  # Grad‑CAM generation utilities
+│  └─ model_loader.py             # Lazy loading of selected models
+│
+└─ venv/                          # Local virtual environment (not committed)
+```
 
 ---
 
 ## 🔬 System Workflow
 
-1. User uploads a chest X-ray image  
-2. Image is resized and normalized  
-3. Selected deep learning model is dynamically loaded  
-4. Model performs inference on the processed image  
-5. Prediction probability is calculated  
-6. Result and confidence score are displayed  
+1. User uploads a chest X‑ray image from the web interface.  
+2. The image is validated, resized, and normalized. 
+3. The selected deep learning model is loaded (if not already in memory).  
+4. The model performs inference on the processed image.  
+5. Prediction probabilities and class label are generated. 
+6. The result, confidence score, and visualization are rendered on the result page.  
 
 ---
 
@@ -258,5 +304,20 @@ http://127.0.0.1:5000
 | Normal       | No pneumonia detected           |
 | Pneumonia    | Pneumonia detected              |
 | Confidence % | Model prediction certainty      |
+
+---
+
+## ⚠️ Disclaimer
+
+This project is an academic prototype and is not intended for clinical diagnosis or treatment decision‑making.
+Predictions must not be used as a substitute for professional medical judgment. Always consult qualified medical practitioners for diagnosis and care.
+
+---
+
+## 🙌 Acknowledgements
+
+1.Kaggle dataset: Chest X‑Ray Images (Pneumonia) by Paul Timothy Mooney
+2.Open‑source communities behind TensorFlow, Keras, and Flask
+3.Academic guides and mentors supporting this B.Tech final‑year project
 
 ---
