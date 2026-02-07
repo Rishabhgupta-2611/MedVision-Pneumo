@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MedVision‑Pneumo – Pneumonia Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="page" role="main">
+      <header class="nav" aria-label="Primary navigation">
+        <div class="nav-left">
+          <div class="nav-logo" aria-hidden="true">MV</div>
+          <div class="nav-title">
+            <span class="nav-title-main">MedVision‑Pneumo</span>
+            <span class="nav-title-sub"
+              >Multi‑Model Chest X‑ray Pneumonia Detection</span
+            >
+          </div>
+        </div>
+        <nav class="nav-links">
+          <a href="#" class="nav-link nav-link-active" aria-current="page"
+            >Home</a
+          >
+          <a href="#about" class="nav-link">About</a>
+          <a href="#dataset" class="nav-link">Dataset</a>
+          <a href="#shortcuts" class="nav-link">Shortcuts</a>
+        </nav>
+        <div class="nav-cta">
+          <a
+            class="btn-ghost"
+            href="https://github.com/Rishabhgupta-2611/MedVision-Pneumo"
+            target="_blank"
+            rel="noopener"
+          >
+            GitHub
+          </a>
+          <button class="btn-primary" type="button">Login / History</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div>
+          <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-badge">
+              <span class="hero-badge-dot"></span>
+              <span>Fast & Accurate Chest X‑ray Screening</span>
+            </div>
+            <h1 id="hero-title" class="hero-title">
+              Automated <span class="hero-highlight">Pneumonia</span> Detection
+              from Chest X‑rays.
+            </h1>
+            <p class="hero-subtitle">
+              MedVision‑Pneumo is an academic prototype that unifies five deep
+              learning models into a single web interface for chest X‑ray–based
+              pneumonia screening, providing calibrated confidence scores and
+              Grad‑CAM visual explanations.
+            </p>
+            <div class="hero-meta">
+              <span class="hero-meta-pill"
+                >Custom CNN + Transfer Learning (VGG, ResNet, MobileNet)</span
+              >
+              <span class="hero-meta-pill">Flask Web App</span>
+              <span class="hero-meta-pill">CPU‑Efficient Model Inference</span>
+            </div>
+            <div class="hero-tags">
+              <span class="tag">Pneumonia Screening Pipeline</span>
+              <span class="tag">Chest X‑ray Imaging</span>
+              <span class="tag">Deep Learning Models</span>
+              <span class="tag">Explainable AI (Grad‑CAM)</span>
+            </div>
+          </section>
+
+          <section class="panel" aria-label="Upload and prediction form">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">Upload Chest X‑ray</div>
+                <div class="panel-subtitle">
+                  Supported: JPG, JPEG, PNG • Max size 5 MB
+                </div>
+              </div>
+              <span class="pill-soft">Step 1 of 2</span>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-error" role="alert">{{ error }}</div>
+            {% endif %}
+
+            <form
+              id="upload-form"
+              action="/"
+              method="POST"
+              enctype="multipart/form-data"
+            >
+              <label for="image" class="label">X‑ray image file</label>
+              <div id="drop-zone" class="drop-zone" tabindex="0">
+                <div class="drop-icon" aria-hidden="true">⬆</div>
+                <div class="drop-title">Drag & drop image here</div>
+                <div class="drop-text">or click to browse from your device</div>
+                <div class="drop-cta"><span>Browse files</span></div>
+                <input
+                  id="image"
+                  name="image"
+                  type="file"
+                  accept=".png,.jpg,.jpeg"
+                  style="display: none"
+                  required
+                />
+                <div class="file-meta">
+                  Only frontal chest X‑ray images should be uploaded. Other
+                  modalities are not supported.
+                </div>
+              </div>
+
+              <div
+                id="preview-wrapper"
+                class="preview-wrapper"
+                aria-live="polite"
+              >
+                <div class="preview-header">
+                  <span>Image preview</span>
+                  <span id="file-name"></span>
+                </div>
+                <img
+                  id="preview-img"
+                  class="preview-img"
+                  src=""
+                  alt="Preview of selected chest X‑ray"
+                />
+              </div>
+
+              <div class="field">
+                <label for="model" class="label">Choose model</label>
+                <select name="model" id="model">
+                  <option value="model1">Model 1 – Custom CNN</option>
+                  <option value="model2">Model 2 – VGG16</option>
+                  <option value="model3">Model 3 – VGG19</option>
+                  <option value="model4">Model 4 – ResNet50</option>
+                  <option value="model5">Model 5 – MobileNetV2</option>
+                </select>
+              </div>
+
+              <div id="upload-progress" class="progress-bar" aria-hidden="true">
+                <div class="progress-fill" id="upload-progress-fill"></div>
+              </div>
+
+              <div class="form-footer">
+                <div class="accessibility-note">
+                  Keyboard shortcuts: <strong>U</strong> – upload,
+                  <strong>M</strong> – model, <strong>Esc</strong> – clear.
+                </div>
+                <div class="btn-group">
+                  <button class="btn-secondary" type="reset" id="clear-btn">
+                    Clear
+                  </button>
+                  <button class="btn-primary" type="submit">
+                    Predict Pneumonia
+                  </button>
+                </div>
+              </div>
+            </form>
+          </section>
+        </div>
+
+        <aside aria-label="Project details">
+  <section class="side-card" id="about">
+    <div class="side-title">Project Overview</div>
+    <p class="side-text">
+      MedVision‑Pneumo is a web-based multi‑model deep learning framework for automated pneumonia screening from chest X‑ray images, designed as an explainable decision‑support tool.
+    </p>
+    <ul class="info-list">
+      <li>Five CNN‑based models (custom architecture and transfer learning backbones).</li>
+      <li>On‑demand inference delivered through a Flask web interface.</li>
+      <li>Per‑prediction confidence scores with Grad‑CAM visual explanations.</li>
+            </ul>
+          </section>
+
+          <section class="side-card" id="dataset">
+            <div class="side-title">Dataset</div>
+            <p class="side-text">
+              Kaggle – Chest X‑Ray Images (Pneumonia), by Paul Timothy Mooney.
+              Used strictly for academic and research purposes.
+            </p>
+            <a
+              class="btn-link"
+              href="https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia"
+              target="_blank"
+              rel="noopener"
+            >
+              Open Kaggle dataset
+            </a>
+          </section>
+
+          <section class="side-card" id="shortcuts">
+            <div class="side-title">Keyboard Shortcuts</div>
+            <ul class="info-list">
+              <li><strong>U</strong> – Focus upload area.</li>
+              <li><strong>M</strong> – Focus model dropdown.</li>
+              <li><strong>Esc</strong> – Clear form.</li>
+            </ul>
+          </section>
+
+          <section class="side-card">
+            <div class="side-title">Disclaimer</div>
+            <p class="side-text">
+              Academic prototype only. Not for clinical diagnosis or treatment
+              decisions. Always consult qualified medical professionals.
+            </p>
+          </section>
+        </aside>
+      </section>
+    </div>
+
+    <footer class="footer" id="contact">
+  <span>© 2026 MedVision‑Pneumo • B.Tech CSE Final Year Project</span>
+  <div class="footer-links">
+    <a href="mailto:rishabh9807114498@gmail.com"> • Contact</a>
+    <a
+      href="https://github.com/Rishabhgupta-2611/MedVision-Pneumo"
+      target="_blank"
+      rel="noopener"
+    > • GitHub</a>
+    <a
+      href="https://github.com/Rishabhgupta-2611/MedVision-Pneumo/blob/main/README.md"
+      target="_blank"
+      rel="noopener"
+    > • Documentation</a>
+    <!-- <a href="#"> • Documentation</a> -->
+  </div>
+</footer>
+
+    <div id="toast" class="toast" aria-live="polite">
+      <span id="toast-message"></span>
+    </div>
+    <div id="loader-overlay" class="loader-overlay">
+      <div class="loader-spinner"></div>
+    </div>
+
+    <script>
+      const dropZone = document.getElementById("drop-zone");
+      const fileInput = document.getElementById("image");
+      const previewWrapper = document.getElementById("preview-wrapper");
+      const previewImg = document.getElementById("preview-img");
+      const fileNameLabel = document.getElementById("file-name");
+      const form = document.getElementById("upload-form");
+      const clearBtn = document.getElementById("clear-btn");
+      const toast = document.getElementById("toast");
+      const toastMsg = document.getElementById("toast-message");
+      const loader = document.getElementById("loader-overlay");
+      const progressBar = document.getElementById("upload-progress");
+      const progressFill = document.getElementById("upload-progress-fill");
+      const modelSelect = document.getElementById("model");
+
+      function showToast(message, type = "info") {
+        toastMsg.textContent = message;
+        toast.classList.remove("toast-error", "toast-success");
+        if (type === "error") toast.classList.add("toast-error");
+        if (type === "success") toast.classList.add("toast-success");
+        toast.style.display = "block";
+        setTimeout(() => {
+          toast.style.display = "none";
+        }, 3000);
+      }
+
+      function showLoader(show) {
+        loader.style.display = show ? "flex" : "none";
+      }
+
+      function handleFiles(files) {
+        const file = files[0];
+        if (!file) return;
+        const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+        const maxSizeMB = 5;
+
+        if (!allowedTypes.includes(file.type)) {
+          showToast("Please upload a JPG or PNG image.", "error");
+          fileInput.value = "";
+          return;
+        }
+        if (file.size > maxSizeMB * 1024 * 1024) {
+          showToast("File size exceeds 5 MB.", "error");
+          fileInput.value = "";
+          return;
+        }
+
+        fileNameLabel.textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          previewWrapper.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+        showToast("Image loaded successfully.", "success");
+      }
+
+      dropZone.addEventListener("click", () => fileInput.click());
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+      dropZone.addEventListener("dragleave", () =>
+        dropZone.classList.remove("dragover"),
+      );
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        handleFiles(e.dataTransfer.files);
+      });
+      fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+
+      dropZone.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        fileInput.value = "";
+        previewWrapper.style.display = "none";
+        fileNameLabel.textContent = "";
+        showToast("Form cleared.", "info");
+      });
+
+      form.addEventListener("submit", (e) => {
+        if (!fileInput.files.length) {
+          showToast("Please select an image before predicting.", "error");
+        e.preventDefault();
+        return;
+        }
+        progressBar.style.display = "block";
+        progressFill.style.width = "0%";
+        showLoader(true);
+        let value = 0;
+        const timer = setInterval(() => {
+          value = Math.min(95, value + Math.random() * 20);
+          progressFill.style.width = value + "%";
+        }, 150);
+
+        setTimeout(() => {
+          clearInterval(timer);
+          progressFill.style.width = "100%";
+          setTimeout(() => {
+            progressBar.style.display = "none";
+            progressFill.style.width = "0%";
+            showLoader(false);
+          }, 400);
+        }, 2000);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT")
+          return;
+        if (e.key === "u" || e.key === "U") {
+          dropZone.focus();
+          showToast("Focused on upload area (U).", "info");
+        } else if (e.key === "m" || e.key === "M") {
+          modelSelect.focus();
+          showToast("Focused on model selection (M).", "info");
+        } else if (e.key === "Escape") {
+          clearBtn.click();
+        }
+      });
+    </script>
+  </body>
+</html>

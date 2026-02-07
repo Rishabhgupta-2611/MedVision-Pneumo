@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Prediction Result – MedVision‑Pneumo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="page" role="main">
+    <header class="nav">
+        <div class="nav-left">
+            <div class="nav-logo" aria-hidden="true">MV</div>
+            <div>
+                <div class="nav-title-main">MedVision‑Pneumo</div>
+                <div class="nav-title-sub">Prediction Result</div>
+            </div>
+        </div>
+        <button class="btn-primary" type="button" onclick="window.location.href='/'">
+            New Prediction
+        </button>
+    </header>
+
+    <section class="layout">
+        <article class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Prediction Summary</div>
+                    <div class="card-subtitle">Model: {{ model }}</div>
+                </div>
+                <span class="pill-soft">Step 2 of 2</span>
+            </div>
+
+            {% set is_pneumonia = 'Pneumonia' in result %}
+            <div class="status {% if is_pneumonia %}status-danger{% else %}status-success{% endif %}">
+                <div class="status-indicator"></div>
+                <div>
+                    <div class="status-label">{{ result }}</div>
+                    <div class="status-text">
+                        Confidence: {{ confidence }}%
+                        {% if is_pneumonia %}
+                            – High risk. Immediate clinical correlation is recommended.
+                        {% else %}
+                            – No radiographic evidence of pneumonia detected.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="confidence-wrapper">
+                <div class="confidence-label">Prediction confidence</div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confidence-fill"></div>
+                </div>
+                <div class="confidence-value" id="confidence-text"></div>
+            </div>
+
+            <div class="image-grid">
+                <figure class="image-box">
+                    <div class="image-box-header">
+                        <span>Original X‑ray</span>
+                        <span>Input image</span>
+                    </div>
+                    <img class="image-box-img"
+                        src="{{ '/' + image_path }}"
+                        alt="Uploaded chest X-ray used for prediction" />
+                </figure>
+
+                <figure class="image-box">
+                    <div class="image-box-header">
+                        <span>Grad‑CAM Heatmap</span>
+                        <span>Explainable AI</span>
+                    </div>
+                    <!-- Use static placeholder Grad-CAM image -->
+                    <img class="image-box-img"
+                        src="{{ url_for('static', filename='img/gradcam_placeholder.png') }}"
+                        alt="Grad-CAM heatmap highlighting lung regions" />
+                </figure>
+            </div>
+
+            <div class="action-row">
+                <button class="btn-primary" type="button" onclick="downloadPDF()">
+                    Download PDF Report
+                </button>
+                <button class="btn-secondary" type="button" onclick="copyShareLink()">
+                    Copy Shareable Link
+                </button>
+            </div>
+
+            <p class="footer-text">
+                Academic prototype only. Do not use for clinical diagnosis or treatment.
+            </p>
+        </article>
+
+        <aside class="card">
+            <div class="card-header">
+                <div class="card-title">Interpretation & Notes</div>
+            </div>
+            <ul class="info-list">
+                <li><strong>Model selected:</strong> {{ model }}</li>
+                <li><strong>Predicted class:</strong> {{ result }}</li>
+                <li><strong>Confidence score:</strong> {{ confidence }}%</li>
+                <li><strong>Input:</strong> Chest X‑ray resized to 224×224 and normalized to [0, 1].</li>
+                <li><strong>Grad‑CAM:</strong> Highlights lung regions that most influenced the prediction.</li>
+            </ul>
+            <div style="margin-top:12px;font-size:11px;color:var(--muted);">
+                Planned extensions:
+                <ul class="info-list">
+                    <li>User login and prediction history dashboard.</li>
+                    <li>Per‑model evaluation and confusion matrices.</li>
+                    <li>Exportable CSV logs for research analysis.</li>
+                </ul>
+            </div>
+        </aside>
+    </section>
+</div>
+
+<footer class="footer">
+    <span>© 2026 MedVision‑Pneumo • B.Tech CSE Final Year Project</span>
+    <div>
+        <a href="mailto:rishabh9807114498@gmail.com"> • Contact</a>
+        <a href="https://github.com/Rishabhgupta-2611/MedVision-Pneumo" target="_blank" rel="noopener"> • GitHub</a>
+        <a
+      href="https://github.com/Rishabhgupta-2611/MedVision-Pneumo/blob/main/README.md"
+      target="_blank"
+      rel="noopener"
+    > • Documentation</a>
+        <!-- <a href="#"> • Documentation</a> -->
+    </div>
+</footer>
+
+<div id="toast" class="toast" aria-live="polite">
+    <span id="toast-message"></span>
+</div>
+
+<script>
+    const confidenceValue = "{{ confidence }}";
+    const fill = document.getElementById('confidence-fill');
+    const text = document.getElementById('confidence-text');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-message');
+
+    function showToast(message, type = 'info') {
+        toastMsg.textContent = message;
+        toast.classList.remove('toast-error', 'toast-success');
+        if (type === 'error') toast.classList.add('toast-error');
+        if (type === 'success') toast.classList.add('toast-success');
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
+    window.addEventListener('load', () => {
+        const clamped = Math.max(0, Math.min(100, confidenceValue));
+        fill.style.width = clamped + '%';
+        text.textContent = 'Model is ' + clamped.toFixed(2) + '% confident in this prediction.';
+    });
+
+    async function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const title = 'MedVision‑Pneumo – Prediction Report';
+        const date = new Date().toLocaleString();
+
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(16);
+        doc.text(title,14,20);
+
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(10);
+        doc.text('Generated on: ' + date,14,28);
+
+        doc.setFontSize(12);
+        doc.text('Prediction Summary',14,38);
+
+        doc.setFontSize(11);
+        doc.text('Model: {{ model }}',14,48);
+        doc.text('Predicted class: {{ result }}',14,56);
+        doc.text('Confidence: {{ confidence }}%',14,64);
+
+        doc.setFontSize(10);
+        doc.text('Notes:',14,78);
+        doc.setFontSize(9);
+        const disclaimer =
+            'This report is generated by an experimental deep learning model and is intended only for academic research. ' +
+            'It must not be used for clinical decision making or self-diagnosis. Always consult a certified medical professional.';
+        doc.text(doc.splitTextToSize(disclaimer,182),14,84);
+
+        doc.save('medvision_pneumo_report.pdf');
+        showToast('PDF report downloaded.', 'success');
+    }
+
+    function copyShareLink() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('Result link copied to clipboard.', 'success');
+        }).catch(() => {
+            showToast('Unable to copy link. Please copy from the address bar.', 'error');
+        });
+    }
+</script>
+</body>
+</html>
